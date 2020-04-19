@@ -103,6 +103,7 @@ class MainActivity : AppCompatActivity() {
 
         //表示を更新するために、アダプターにデータが変更されたことを知らせる
         mTaskAdapter.notifyDataSetChanged()
+        //aa
     }
 
     override fun onDestroy() {
