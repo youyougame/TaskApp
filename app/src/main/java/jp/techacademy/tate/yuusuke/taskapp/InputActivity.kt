@@ -1,7 +1,11 @@
 package jp.techacademy.tate.yuusuke.taskapp
 
+import android.app.AlarmManager
 import android.app.DatePickerDialog
+import android.app.PendingIntent
 import android.app.TimePickerDialog
+import android.content.Context
+import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -152,6 +156,24 @@ class InputActivity : AppCompatActivity() {
         realm.commitTransaction() //Realmとの取引を終了する
 
         realm.close()
+
+        //タスクの日時にブロードキャストされるように、addTaskメソッドでデータベースにタスクを保存
+        //TaskAlarmReceiverを起動するIntentを作成
+        val resultIntent = Intent(applicationContext, TaskAlarmReceiver::class.java)
+        //Extraにタスクを設定
+        resultIntent.putExtra(EXTRA_TASK, mTask!!.id)
+        //PendingIntentを作成
+        val resultPendingIntent = PendingIntent.getBroadcast(
+            this,
+            mTask!!.id, //タスクのID
+            resultIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT //PendingIntentがあれば、そのままでextraのデータだけ置き換えるという指定
+        )
+
+        //AlarmManagerを使うことで指定した時間に任意の処理をさせることができる
+        //AlarmManagerはActivityのgetSystemServiceメソッドに引数ALARM_SERVICEを与えて取得する
+        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+        alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, resultPendingIntent)
 
     }
 }

@@ -1,5 +1,8 @@
 package jp.techacademy.tate.yuusuke.taskapp
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -77,6 +80,18 @@ class MainActivity : AppCompatActivity() {
                 results.deleteAllFromRealm()
                 mRealm.commitTransaction()
 
+                //アラームを解除する
+                val resultIntent = Intent(applicationContext, TaskAlarmReceiver::class.java)
+                val resultPendingIntent = PendingIntent.getBroadcast(
+                    this@MainActivity,
+                    task.id,
+                    resultIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT
+                )
+
+                val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+                alarmManager.cancel(resultPendingIntent)
+
                 reloadListView()
             }
 
@@ -103,7 +118,6 @@ class MainActivity : AppCompatActivity() {
 
         //表示を更新するために、アダプターにデータが変更されたことを知らせる
         mTaskAdapter.notifyDataSetChanged()
-        //aa
     }
 
     override fun onDestroy() {
