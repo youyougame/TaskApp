@@ -8,14 +8,16 @@ import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import io.realm.Realm
-import io.realm.RealmChangeListener
-import io.realm.Sort
+import android.widget.Toast
+import io.realm.*
 
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_input.*
 import java.util.*
+import kotlin.collections.ArrayList
 
 const val EXTRA_TASK = "jp.techacademy.tate.yuusuke.taskapp.TASK"
 
@@ -49,6 +51,22 @@ class MainActivity : AppCompatActivity() {
         mRealm = Realm.getDefaultInstance()
         //mRealmListenerを設定する
         mRealm.addChangeListener(mRealmListener)
+
+        category_done_button.setOnClickListener {
+            val categoryWord = categoryEditText.text
+            if (categoryWord.toString() != "") {
+                val categoryRealmResults = mRealm.where(Task::class.java).equalTo("category", categoryWord.toString()).findAll()
+                if (categoryRealmResults.toString() != "") {
+                    mTaskAdapter.taskList = mRealm.copyFromRealm(categoryRealmResults)
+                    listView1.adapter = mTaskAdapter
+                    mTaskAdapter.notifyDataSetChanged()
+                } else {
+                    Toast.makeText(applicationContext, "該当するカテゴリーがありません", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                reloadListView()
+            }
+        }
 
         //ListViewの設定
         mTaskAdapter = TaskAdapter(this@MainActivity)
@@ -119,6 +137,7 @@ class MainActivity : AppCompatActivity() {
         //表示を更新するために、アダプターにデータが変更されたことを知らせる
         mTaskAdapter.notifyDataSetChanged()
     }
+
 
     override fun onDestroy() {
         super.onDestroy()
