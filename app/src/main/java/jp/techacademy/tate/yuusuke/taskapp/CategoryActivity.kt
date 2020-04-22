@@ -33,7 +33,6 @@ class CategoryActivity : AppCompatActivity() {
         mRealm.addChangeListener(mRealmListener)
 
         mTaskAdapter = TaskAdapter(this@CategoryActivity)
-//        mCategoryAdapter = CategoryAdapter(this@CategoryActivity)
 
         category_done_button.setOnClickListener {
             val categoryText = category_edit_text.text
