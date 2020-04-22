@@ -199,7 +199,7 @@ class InputActivity : AppCompatActivity() {
     private fun makeArrayList() {
         realm = Realm.getDefaultInstance()
         val categoryRealmResults = realm.where(Task::class.java).findAll().sort("category", Sort.DESCENDING)
-        val spinnerItems = arrayOf(categoryRealmResults)
+        val spinnerItems = arrayListOf<String>(categoryRealmResults.toString())
 
         val adapter = ArrayAdapter(
             applicationContext,
@@ -207,6 +207,8 @@ class InputActivity : AppCompatActivity() {
             spinnerItems
         )
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        contentInputSpinner.adapter = adapter
 
         //spinnerのリスナーを登録
         contentInputSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
