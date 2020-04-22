@@ -21,9 +21,9 @@ class CategoryActivity : AppCompatActivity() {
         }
     }
 
-//    private lateinit var mTaskAdapter: TaskAdapter
+    private lateinit var mTaskAdapter: TaskAdapter
 
-    private lateinit var mCategoryAdapter: CategoryAdapter
+//    private lateinit var mCategoryAdapter: CategoryAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,8 +32,8 @@ class CategoryActivity : AppCompatActivity() {
         mRealm = Realm.getDefaultInstance()
         mRealm.addChangeListener(mRealmListener)
 
-//        mTaskAdapter = TaskAdapter(this@CategoryActivity)
-        mCategoryAdapter = CategoryAdapter(this@CategoryActivity)
+        mTaskAdapter = TaskAdapter(this@CategoryActivity)
+//        mCategoryAdapter = CategoryAdapter(this@CategoryActivity)
 
         category_done_button.setOnClickListener {
             val categoryText = category_edit_text.text
@@ -62,11 +62,14 @@ class CategoryActivity : AppCompatActivity() {
     private fun reloadCategoryList() {
         val categoryRealmResults = mRealm.where(Task::class.java).findAll().sort("category", Sort.DESCENDING)
 
-        mCategoryAdapter.taskList = mRealm.copyFromRealm(categoryRealmResults)
+//        mCategoryAdapter.taskList = mRealm.copyFromRealm(categoryRealmResults)
+        mTaskAdapter.taskList = mRealm.copyFromRealm(categoryRealmResults)
 
-        categoryListView.adapter = mCategoryAdapter
+//        categoryListView.adapter = mCategoryAdapter
+        categoryListView.adapter = mTaskAdapter
 
-        mCategoryAdapter.notifyDataSetChanged()
+//        mCategoryAdapter.notifyDataSetChanged()
+        mTaskAdapter.notifyDataSetChanged()
     }
 
     private fun addCategory() {
@@ -76,12 +79,6 @@ class CategoryActivity : AppCompatActivity() {
         val category = category_edit_text.toString()
 
         mTask = Task()
-
-        val taskRealmResults = mRealm.where(Task::class.java).findAll()
-
-        val identifier: Int = taskRealmResults.max("id")!!.toInt() + 1
-
-        mTask!!.id = identifier
 
         mTask!!.category = category
 
