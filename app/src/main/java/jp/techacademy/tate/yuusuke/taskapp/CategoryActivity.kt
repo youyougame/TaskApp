@@ -21,7 +21,9 @@ class CategoryActivity : AppCompatActivity() {
         }
     }
 
-    private lateinit var mTaskAdapter: TaskAdapter
+//    private lateinit var mTaskAdapter: TaskAdapter
+
+    private lateinit var mCategoryAdapter: CategoryAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +32,8 @@ class CategoryActivity : AppCompatActivity() {
         mRealm = Realm.getDefaultInstance()
         mRealm.addChangeListener(mRealmListener)
 
-        mTaskAdapter = TaskAdapter(this@CategoryActivity)
+//        mTaskAdapter = TaskAdapter(this@CategoryActivity)
+        mCategoryAdapter = CategoryAdapter(this@CategoryActivity)
 
         category_done_button.setOnClickListener {
             val categoryText = category_edit_text.text
@@ -43,7 +46,7 @@ class CategoryActivity : AppCompatActivity() {
         categoryListView.setOnItemLongClickListener { parent, _, position, _ ->
             val task = parent.adapter.getItem(position) as Task
 
-            val results = mRealm.where(Task::class.java).equalTo("category", task.id).findAll()
+            val results = mRealm.where(Task::class.java).equalTo("category", task.category).findAll()
 
             mRealm.beginTransaction()
             results.deleteAllFromRealm()
@@ -59,28 +62,31 @@ class CategoryActivity : AppCompatActivity() {
     private fun reloadCategoryList() {
         val categoryRealmResults = mRealm.where(Task::class.java).findAll().sort("category", Sort.DESCENDING)
 
-        mTaskAdapter.taskList = mRealm.copyFromRealm(categoryRealmResults)
+        mCategoryAdapter.taskList = mRealm.copyFromRealm(categoryRealmResults)
 
-        categoryListView.adapter = mTaskAdapter
+        categoryListView.adapter = mCategoryAdapter
 
-        mTaskAdapter.notifyDataSetChanged()
+        mCategoryAdapter.notifyDataSetChanged()
     }
 
     private fun addCategory() {
-        val realm = Realm.getDefaultInstance()
 
-        realm.beginTransaction()
+        mRealm.beginTransaction()
 
         val category = category_edit_text.toString()
 
+        mTask = Task()
+
+        val taskRealmResults = mRealm.where(Task::class.java).findAll()
+
+        val identifier: Int = taskRealmResults.max("id")!!.toInt() + 1
+
+        mTask!!.id = identifier
+
         mTask!!.category = category
 
-        realm.copyToRealmOrUpdate(mTask!!)
-        realm.commitTransaction()
-
-        realm.close()
-
-        val resultIntent = Intent(applicationContext, TaskAlarmReceiver::class.java)
+        mRealm.copyToRealmOrUpdate(mTask!!)
+        mRealm.commitTransaction()
 
     }
 }
