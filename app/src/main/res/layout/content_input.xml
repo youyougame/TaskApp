@@ -53,4 +53,21 @@
         android:layout_alignParentRight="true"
         android:text="決定"/>
 
+    <Button
+        android:layout_width="288dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/toCategoryPage"
+        android:layout_below="@id/date_button"
+        android:layout_alignParentStart="true"
+        android:layout_toLeftOf="@+id/done_button"
+        android:text="カテゴリーを追加"/>
+
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="カテゴリ"
+        android:id="@+id/contentInputSpinner"
+        android:layout_below="@+id/toCategoryPage"
+        android:layout_alignParentStart="true" />
+
 </RelativeLayout>

@@ -11,6 +11,10 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.Toast
 import io.realm.*
 
@@ -25,6 +29,10 @@ class MainActivity : AppCompatActivity() {
 
     //Realmクラスを保持する
     private lateinit var mRealm: Realm
+
+    private val spinnerItems = arrayListOf("全て")
+
+    private lateinit var item: String
 
     //Realmのデータベースに追加や削除など変化があった場合に呼ばれるリスナー
     private val mRealmListener = object : RealmChangeListener<Realm> {
@@ -52,21 +60,8 @@ class MainActivity : AppCompatActivity() {
         //mRealmListenerを設定する
         mRealm.addChangeListener(mRealmListener)
 
-        category_done_button.setOnClickListener {
-            val categoryWord = categoryEditText.text
-            if (categoryWord.toString() != "") {
-                val categoryRealmResults = mRealm.where(Task::class.java).equalTo("category", categoryWord.toString()).findAll()
-                if (categoryRealmResults.toString() != "") {
-                    mTaskAdapter.taskList = mRealm.copyFromRealm(categoryRealmResults)
-                    listView1.adapter = mTaskAdapter
-                    mTaskAdapter.notifyDataSetChanged()
-                } else {
-                    Toast.makeText(applicationContext, "該当するカテゴリーがありません", Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                reloadListView()
-            }
-        }
+        //Spinnerの設定
+        makeArrayList()
 
         //ListViewの設定
         mTaskAdapter = TaskAdapter(this@MainActivity)
@@ -136,6 +131,53 @@ class MainActivity : AppCompatActivity() {
 
         //表示を更新するために、アダプターにデータが変更されたことを知らせる
         mTaskAdapter.notifyDataSetChanged()
+    }
+
+    private fun makeArrayList() {
+
+        val categoryRealmResults = mRealm.where(Task::class.java).findAll().sort("category", Sort.DESCENDING)
+        spinnerItems.add(categoryRealmResults.toString())
+
+
+        val adapter = ArrayAdapter(
+            applicationContext,
+            android.R.layout.simple_spinner_item,
+            spinnerItems
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        //spinnerのリスナーを登録
+        categorySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    val spinnerParent = parent as Spinner
+                    item = spinnerParent.selectedItem as String
+
+                    if (item != "全て") {
+                        val categoryRealmResults = mRealm.where(Task::class.java).equalTo("category", item).findAll()
+                        if (categoryRealmResults.toString() != "") {
+                            mTaskAdapter.taskList = mRealm.copyFromRealm(categoryRealmResults)
+                            listView1.adapter = mTaskAdapter
+                            mTaskAdapter.notifyDataSetChanged()
+                        } else {
+                            Toast.makeText(
+                                applicationContext,
+                                "該当するカテゴリがありません",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+
+                }
+        }
+
     }
 
 

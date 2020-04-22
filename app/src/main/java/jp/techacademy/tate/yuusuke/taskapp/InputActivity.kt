@@ -9,10 +9,15 @@ import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 import android.widget.Toolbar
 import kotlinx.android.synthetic.main.content_input.*
 import io.realm.Realm
+import io.realm.Sort
 import java.util.*
+import kotlin.collections.ArrayList
 
 class InputActivity : AppCompatActivity() {
 
@@ -25,6 +30,10 @@ class InputActivity : AppCompatActivity() {
 
     //タスククラスのオブジェクト
     private var mTask: Task? = null
+
+    private lateinit var realm: Realm
+
+    private lateinit var item: String
 
     //日付の設定をするリスナー
     private val mOnDateClickListener = View.OnClickListener {
@@ -73,6 +82,13 @@ class InputActivity : AppCompatActivity() {
         date_button.setOnClickListener(mOnDateClickListener)
         times_button.setOnClickListener(mOnTimeClickListener)
         done_button.setOnClickListener(mOnDoneClickListener)
+        toCategoryPage.setOnClickListener {
+            val categoryIntent = Intent(this@InputActivity, CategoryActivity::class.java)
+            startActivity(categoryIntent)
+        }
+
+        //Spinner作成
+        makeArrayList()
 
         //Realmからの受け取り
         //EXTRA_TASkからTaskのidを取得して、idからTaskのインスタンスを取得する
@@ -80,11 +96,12 @@ class InputActivity : AppCompatActivity() {
         //EXTRA_TASKからTaskのidを取り出す
         //EXTRA_TASKが設定されていない場合taskIdに-1が代入される
         val taskId = intent.getIntExtra(EXTRA_TASK, -1)
-        val realm = Realm.getDefaultInstance()
+        realm = Realm.getDefaultInstance()
         //TaskのidがTaskIdのものが検索され、findFirst()によって最初に見つかったインスタンスが返され、mTaskへ代入される
         //idが必ず0以上という仕様を利用し、taskIdに-1が入っていると、検索に引っかからず、mTaskにnullが代入される
         mTask = realm.where(Task::class.java).equalTo("id", taskId).findFirst()
         realm.close()
+
 
         if (mTask == null) {
             //新規作成の場合
@@ -97,10 +114,10 @@ class InputActivity : AppCompatActivity() {
             mMinute = calendar.get(Calendar.MINUTE)
         } else {
             //更新の場合
-            //渡ってきたタスクの時間を設定する
             title_edit_text.setText(mTask!!.title)
             content_edit_text.setText(mTask!!.contents)
 
+            //渡ってきたタスクの時間を設定する
             val calendar = Calendar.getInstance()
             calendar.time = mTask!!.date
             mYear = calendar.get(Calendar.YEAR)
@@ -143,10 +160,12 @@ class InputActivity : AppCompatActivity() {
 
         val title = title_edit_text.text.toString()
         val content = content_edit_text.text.toString()
+        val category = item
 
         //タイトル、内容、日時をmTaskに設定
         mTask!!.title = title //タイトル
         mTask!!.contents = content //内容
+        mTask!!.category = category
 
         val calendar = GregorianCalendar(mYear, mMonth, mDay, mHour, mMinute)
         val date = calendar.time
@@ -175,5 +194,36 @@ class InputActivity : AppCompatActivity() {
         val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
         alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, resultPendingIntent)
 
+    }
+
+    private fun makeArrayList() {
+        realm = Realm.getDefaultInstance()
+        val categoryRealmResults = realm.where(Task::class.java).findAll().sort("category", Sort.DESCENDING)
+        val spinnerItems = arrayOf(categoryRealmResults)
+
+        val adapter = ArrayAdapter(
+            applicationContext,
+            android.R.layout.simple_spinner_item,
+            spinnerItems
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        //spinnerのリスナーを登録
+        contentInputSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                val spinnerParent = parent as Spinner
+                item = spinnerParent.selectedItem  as String
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+
+            }
+        }
+        realm.close()
     }
 }
