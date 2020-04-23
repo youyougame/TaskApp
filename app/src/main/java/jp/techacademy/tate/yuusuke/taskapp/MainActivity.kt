@@ -42,8 +42,6 @@ class MainActivity : AppCompatActivity() {
     //TaskAdapterを保持するプロパティを定義する
     private lateinit var mTaskAdapter: TaskAdapter
 
-//    private lateinit var mCategoryAdapter: CategoryAdapter
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -66,7 +64,6 @@ class MainActivity : AppCompatActivity() {
 
         //ListViewの設定
         mTaskAdapter = TaskAdapter(this@MainActivity)
-//        mCategoryAdapter = CategoryAdapter((this@MainActivity))
 
         //ListViewをタップしたときの処理
         listView1.setOnItemClickListener { parent, _, position, _ ->
@@ -182,9 +179,7 @@ class MainActivity : AppCompatActivity() {
         arrayList.add("全て")
 
         for (i in 0 .. length - 1) {
-            if (i != null) {
                 arrayList.add(results[i]!!.category)
-            }
         }
 
         val adapter = ArrayAdapter(
