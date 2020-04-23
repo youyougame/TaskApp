@@ -3,6 +3,7 @@ package jp.techacademy.tate.yuusuke.taskapp
 import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import io.realm.Realm
 import io.realm.RealmChangeListener
 import io.realm.Sort
@@ -11,7 +12,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class CategoryActivity : AppCompatActivity() {
 
-    private var mTask: Task? = null
+    private var mCategory: Category? = null
 
     private lateinit var mRealm: Realm
 
@@ -21,9 +22,9 @@ class CategoryActivity : AppCompatActivity() {
         }
     }
 
-    private lateinit var mTaskAdapter: TaskAdapter
+//    private lateinit var mTaskAdapter: TaskAdapter
 
-//    private lateinit var mCategoryAdapter: CategoryAdapter
+    private lateinit var mCategoryAdapter: CategoryAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,20 +33,19 @@ class CategoryActivity : AppCompatActivity() {
         mRealm = Realm.getDefaultInstance()
         mRealm.addChangeListener(mRealmListener)
 
-        mTaskAdapter = TaskAdapter(this@CategoryActivity)
+        mCategoryAdapter = CategoryAdapter(this@CategoryActivity)
 
         category_done_button.setOnClickListener {
-            val categoryText = category_edit_text.text
-            if (categoryText.toString() != "" ) {
+            if (category_edit_text.text.toString() != "" ) {
                 addCategory()
                 reloadCategoryList()
             }
         }
 
         categoryListView.setOnItemLongClickListener { parent, _, position, _ ->
-            val task = parent.adapter.getItem(position) as Task
+            val category = parent.adapter.getItem(position) as Category
 
-            val results = mRealm.where(Task::class.java).equalTo("category", task.category).findAll()
+            val results = mRealm.where(Category::class.java).equalTo("category", category.category).findAll()
 
             mRealm.beginTransaction()
             results.deleteAllFromRealm()
@@ -59,29 +59,39 @@ class CategoryActivity : AppCompatActivity() {
     }
 
     private fun reloadCategoryList() {
-        val categoryRealmResults = mRealm.where(Task::class.java).findAll().sort("category", Sort.DESCENDING)
+        val categoryRealmResults = mRealm.where(Category::class.java).findAll().sort("category")
 
-//        mCategoryAdapter.taskList = mRealm.copyFromRealm(categoryRealmResults)
-        mTaskAdapter.taskList = mRealm.copyFromRealm(categoryRealmResults)
+        mCategoryAdapter.categoryList = mRealm.copyFromRealm(categoryRealmResults)
 
-//        categoryListView.adapter = mCategoryAdapter
-        categoryListView.adapter = mTaskAdapter
+        categoryListView.adapter = mCategoryAdapter
 
-//        mCategoryAdapter.notifyDataSetChanged()
-        mTaskAdapter.notifyDataSetChanged()
+        mCategoryAdapter.notifyDataSetChanged()
     }
 
     private fun addCategory() {
-
         mRealm.beginTransaction()
 
-        val category = category_edit_text.toString()
+        mCategory = Category()
 
-        mTask = Task()
+        val categoryRealmResults = mRealm.where(Category::class.java).findAll()
 
-        mTask!!.category = category
 
-        mRealm.copyToRealmOrUpdate(mTask!!)
+        val identifier: Int = if (categoryRealmResults.max("categoryId") != null) {
+            categoryRealmResults.max("categoryId")!!.toInt() + 1
+        } else {
+            0
+        }
+
+        mCategory!!.categoryId = identifier
+
+
+
+        val category = category_edit_text.text.toString()
+
+
+        mCategory!!.category = category
+
+        mRealm.copyToRealmOrUpdate(mCategory!!)
         mRealm.commitTransaction()
 
     }
