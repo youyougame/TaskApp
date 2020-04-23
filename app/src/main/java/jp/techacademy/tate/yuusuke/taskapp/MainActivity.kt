@@ -56,6 +56,7 @@ class MainActivity : AppCompatActivity() {
 
         //Realmの設定
         //オブジェクトを取得
+
         mRealm = Realm.getDefaultInstance()
         //mRealmListenerを設定する
         mRealm.addChangeListener(mRealmListener)
